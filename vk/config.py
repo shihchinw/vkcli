@@ -19,6 +19,10 @@ class Settings:
             with open(self.filepath) as f:
                 self.data = json.load(f)
         else:
+            folder_path = os.path.dirname(self.filepath)
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+
             self.data = {
                 'layerset' : {
                 }
@@ -118,7 +122,7 @@ class GfxrConfigSettings:
         self.trace_path = filepath_on_device
         utils.adb_setprop('debug.gfxrecon.capture_file', filepath_on_device)
 
-        # We use '-' to sepearate prefix package name from fileaname. When we enable timestamp,
+        # We use '-' to sepearate prefix package name from filename. When we enable timestamp,
         # the timestamp would make output filename violate our naming convention. Thus we disable
         # adding timestamp to filename.
         utils.adb_setprop('debug.gfxrecon.capture_file_timestamp', False)
