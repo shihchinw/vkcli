@@ -1,5 +1,7 @@
 # vkcli
 
+![layer_config](/docs/images/layer_config.gif)
+
 ## Introduction
 vkcli is a handy command line interface for Vulkan configuration on Android. It allows you easily configure Vulkan layer settings and define your own layer presets. Additionally, it also provides commands to record/replay/push/pull API traces.
 
@@ -24,6 +26,10 @@ To query detailed description of each command (i.e. install, layer, etc.), pleas
 ```
 $ vk command --help
 ```
+
+## Documentation
+
+See the [tutorial](docs/tutorial.md) for setup and usage instructions.
 
 ## Develop
 
