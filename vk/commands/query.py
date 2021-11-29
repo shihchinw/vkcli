@@ -82,7 +82,7 @@ def show_layer_state(show_details: bool) -> None:
 @click.option('--layer', 'mode', flag_value=int(QueryMode.Layer), help='Show current active layers.')
 @click.option('--layerset', 'mode', flag_value=int(QueryMode.LayerSet), help='Show layer preset.')
 @click.option('--trace', type=str, metavar='<app_name>', help='Show traces of <app_name> on device.')
-@click.option('--details', 'show_details', is_flag=True, help='Show detailed system configurations.')
+@click.option('--detailed', 'show_details', is_flag=True, help='Show detailed system configurations.')
 def query(mode, trace, show_details):
     """Query device info related to apps, traces, layers, etc.
 

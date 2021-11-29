@@ -113,7 +113,8 @@ def _save_layer_preset(preset_name):
     app_name = utils.get_gpu_debug_app()
 
     settings.set_layer_preset(preset_name, global_layers_value, app_name, app_layers_value)
-    click.echo(f'Save preset \'{preset_name}\':\n{global_layers_value} (global)\n{app_layers_value} ({app_name})')
+    click.echo(f'Save preset \'{preset_name}\' successfully.')
+    show_layer_state(False)
 
 
 def _load_layer_preset(preset_name):

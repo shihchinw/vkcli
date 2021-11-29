@@ -34,7 +34,7 @@ def install(app_name, layer_path):
     else:
         filepath_list = [layer_path]
 
-    click.echo(f'Layers: {filepath_list}')
+    click.echo(f'Found layers: {filepath_list}')
 
     if app_name is None:
         # Require root access.
@@ -58,5 +58,8 @@ def install(app_name, layer_path):
         utils.adb_push(filepath, dst_folder)
         if app_name:
             utils.copy_layer_file_to_app_folder(app_name, filename)
-
-    click.echo(f'Install layers to {dst_folder} successfully.')
+    
+    if app_name:
+        click.echo(f'Install layers to \'{app_name}\' successfully.')
+    else:
+        click.echo(f'Install layers to {dst_folder} successfully.')
