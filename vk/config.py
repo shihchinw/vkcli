@@ -1,9 +1,6 @@
 import click
 import json
 import os
-import re
-
-from click.exceptions import Abort, BadArgumentUsage, BadParameter
 
 from pkg_resources import resource_filename
 
@@ -58,7 +55,7 @@ class Settings:
             del self.layer_presets[name]
             self.__store()
         else:
-            raise BadParameter(f'Cannot find preset named "{name}"')
+            raise click.BadParameter(f'Cannot find preset named "{name}"')
 
     def show_layers(self, show_indices=True):
         name_col_width = 10
@@ -117,7 +114,7 @@ class GfxrConfigSettings:
         filepath_on_device = self.resolve_trace_path_on_device(filename)
         if utils.check_file_existence(filepath_on_device):
             if not click.confirm(f'Override existent trace {filepath_on_device}?'):
-                raise Abort
+                raise click.Abort
 
         self.trace_path = filepath_on_device
         utils.adb_setprop('debug.gfxrecon.capture_file', filepath_on_device)
