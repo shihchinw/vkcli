@@ -34,21 +34,19 @@ def install(app_name, layer_path):
     else:
         filepath_list = [layer_path]
 
-    click.echo(f'Found layers: {filepath_list}')
+    if filepath_list:
+        click.echo(f'Found layers:')
+        for filepath in filepath_list:
+            click.echo(filepath)
 
     if app_name is None:
-        # Require root access.
+        click.echo('Install layers globally (require ROOT access!)')
+        utils.adb_exec('root')
+        utils.adb_exec('disable-verity')
+        utils.adb_exec('root')
+        utils.adb_exec('shell setenforce 0')
         dst_folder = '/data/local/debug/vulkan'
-        try:
-            click.echo('Install layers globally (require ROOT access!)')
-            utils.adb_exec('root')
-            utils.adb_exec('disable-verity')
-            utils.adb_exec('root')
-            utils.adb_exec('shell "setenforce 0"')
-            utils.create_folder_if_not_exists(dst_folder)
-            # utils.adb_exec(f'shell \"mkdir -p {dst_folder}\"')
-        except RuntimeError:
-            raise click.Abort
+        utils.create_folder_if_not_exists(dst_folder)
     else:
         app_name = utils.get_valid_app_name(app_name)
         dst_folder = '/data/local/tmp/'
@@ -58,7 +56,7 @@ def install(app_name, layer_path):
         utils.adb_push(filepath, dst_folder)
         if app_name:
             utils.copy_layer_file_to_app_folder(app_name, filename)
-    
+
     if app_name:
         click.echo(f'Install layers to \'{app_name}\' successfully.')
     else:
