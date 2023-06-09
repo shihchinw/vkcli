@@ -39,6 +39,13 @@ def test_layer_manipulation(runner):
     truth = 'VK_LAYER_bar (global)\nnone ()\n'
     assert result.output == truth
 
+    result = runner.invoke(layer, ['--set', 'VK_LAYER_foobar'])
+    assert result.exit_code == 0
+
+    result = runner.invoke(query, ['--layer'])
+    truth = 'VK_LAYER_foobar (global)\nnone ()\n'
+    assert result.output == truth
+
 
 def test_layer_preset(runner):
     result = runner.invoke(layer, ['--clear'])

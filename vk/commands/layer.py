@@ -42,8 +42,10 @@ def _remove_layers(layer_str, current_layers, set_layers_func):
               help='Add layers <layer1:layer2:layerN>.')
 @click.option('--remove', 'remove_layer_str', metavar='<layer_names>', type=str,
               help='Remove layers <layer1:layer2:layerN>.')
+@click.option('--set', 'set_layer_str', metavar='<layer_names>', type=str,
+              help='Set layers <layer1:layer2:layerN>.')
 @click.option('--clear', is_flag=True, help='Clear active layer settings.')
-def layer(app_name, add_layer_str, remove_layer_str, clear):
+def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
     """Configure active layer settings.
 
     \b
@@ -90,13 +92,17 @@ def layer(app_name, add_layer_str, remove_layer_str, clear):
         current_layers = utils.get_debug_vulkan_layers()
         set_layer_func = utils.set_debug_vulkan_layers
 
-    if add_layer_str:
-        _add_layers(add_layer_str, current_layers, set_layer_func)
+    if set_layer_str:
+        set_layer_func(None)    # Remove all layers
+        _add_layers(set_layer_str, [], set_layer_func)
+    else:
+        if add_layer_str:
+            _add_layers(add_layer_str, current_layers, set_layer_func)
 
-    if remove_layer_str == '*':
-        set_layer_func(None)     # Remove all layers
-    elif remove_layer_str:
-        _remove_layers(remove_layer_str, current_layers, set_layer_func)
+        if remove_layer_str == '*':
+            set_layer_func(None)     # Remove all layers
+        elif remove_layer_str:
+            _remove_layers(remove_layer_str, current_layers, set_layer_func)
 
     click.echo('\nSuccessfully update active layers:')
     show_layer_state(False)
