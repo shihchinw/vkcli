@@ -83,6 +83,8 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
         click.echo('Clear all relevant layer settings.')
         return
 
+    active_app_name = utils.get_gpu_debug_app()
+
     if app_name:
         try:
             app_name = config.get_valid_app_name(app_name)
@@ -94,7 +96,13 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
         utils.enable_gpu_debug_layers(True)
         utils.set_gpu_debug_app(app_name)
 
-        current_layers = utils.get_gpu_debug_layers()
+        keep_layers = True
+        if active_app_name and active_app_name != app_name:
+            click.echo(f'Warning: App name is different from active one ({active_app_name})')
+            ret = utils.acquire_valid_input('Would you like to keep layer settings (y/n)?', ('y', 'n'))
+            keep_layers = (ret == 'y')
+
+        current_layers = utils.get_gpu_debug_layers() if keep_layers else []
         set_layer_func = utils.set_gpu_debug_layers
     else:
         current_layers = utils.get_debug_vulkan_layers()
