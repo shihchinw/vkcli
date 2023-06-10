@@ -2,6 +2,7 @@ import click
 
 import vk.utils as utils
 
+from .commands.dump import dump_api
 from .commands.install import install
 from .commands.layer import layer, layerset
 from .commands.pull import pull
@@ -17,7 +18,7 @@ def cli(verbose):
     """VKCLI - Command line interface for Vulkan layer operations on Android."""
     utils.set_verbosity(verbose)
 
-
+cli.add_command(dump_api)
 cli.add_command(install)
 cli.add_command(layer)
 cli.add_command(layerset)

@@ -11,6 +11,7 @@ vkcli is a handy command line interface for Vulkan configuration on Android. It 
 Usage: vk [OPTIONS] COMMAND [ARGS]...
 
 Commands:
+  dump-api  Dump API log with VK_LAYER_LUNARG_api_dump.
   install   Install layers to device.
   layer     Configure active layer settings.
   layerset  Customize layer presets.

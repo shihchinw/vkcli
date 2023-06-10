@@ -16,6 +16,9 @@ def set_verbosity(value):
 def is_verbose():
     return _VERBOSE
 
+def log_error(msg):
+    click.echo(f'Error: {msg}')
+
 class FrameRange(click.ParamType):
     name = 'FrameRange'
 
@@ -126,6 +129,13 @@ def adb_pull(src_path, dst_path):
 def copy_layer_file_to_app_folder(app_name, filename):
     return f'shell run-as {app_name} cp /data/local/tmp/{filename} .'
 
+def check_layer_in_app_folder(app_name, filename):
+    try:
+        adb_exec(f'shell run-as {app_name} ls {filename}')
+        return True
+    except RuntimeError as e:
+        return False
+
 @adb_cmd()
 def create_folder_if_not_exists(folder_path):
     return f'shell if [ ! -d {folder_path} ]; then mkdir -p {folder_path}; fi'
@@ -217,7 +227,8 @@ def get_selected_package_name(app_list=None):
     while not (0 < app_idx <= app_list_size):
         app_idx = click.prompt('Please choose app package (ctrl+c to abort)', type=int)
         if not (0 < app_idx <= app_list_size):
-            click.echo(f'Selected index {app_idx} is out-of-range!')
+            log_error(f'Selected index {app_idx} is out-of-range!')
+        click.echo('')
 
     return app_list[app_idx - 1]
 
