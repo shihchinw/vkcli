@@ -113,6 +113,9 @@ def query(mode, trace, show_details):
     if mode == QueryMode.App:
         result = utils.get_package_list()
         click.echo('\n'.join(result))
+        click.echo('-' * 50)
+        click.echo(f'Foreground app name: {utils.get_focused_app_name()}')
+        click.echo(f'Last specified app name (=alias !): {config.Settings().get_last_app_name()}')
     elif mode == QueryMode.Platform:
         __show_platform_info()
     elif mode == QueryMode.VkInfo:

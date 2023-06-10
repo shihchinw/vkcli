@@ -262,6 +262,9 @@ def get_valid_app_name(app_name: str) -> str:
 
     return app_name
 
+def get_focused_app_name():
+    log = adb_exec('shell dumpsys activity activities | grep mFocusedApp')
+    return re.search('(\w+(?:[.]\w+)+)', log).group(0)
 
 def get_selected_item(item_list, list_description, inquiry_message, extra_attr_list=None):
     """"Create prompt menu for item selection."""
