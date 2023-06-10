@@ -36,7 +36,11 @@ class RecordSession:
 def record(app_name, filename, enable_log, pull_folder):
     """Record API trace of APP_NAME.
 
-    When APP_NAME is ?, its value could be selected later.
+    \b
+    APP_NAME could be set to:
+        ? Select entity from prompt menu later
+        ! Use last used APP_NAME
+        Any other string
 
     \b
     >> Example 1: Launch com.foo.bar and then record a trace as test.gfxr.
@@ -46,7 +50,7 @@ def record(app_name, filename, enable_log, pull_folder):
     >> Example 2: Launch app from selection, and then record a trace as test.gfxr.
     $ vk record -f test.gfxr ?
     """
-    app_name = utils.get_valid_app_name(app_name)
+    app_name = config.get_valid_app_name(app_name)
     settings = config.GfxrConfigSettings(app_name)
     utils.stop_app(app_name)
     # utils.adb_cmd(f'shell am kill {app_name}')

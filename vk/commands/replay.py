@@ -18,10 +18,11 @@ def replay(trace_name, pause_frame, surface_index,
     """Replay TRACE_NAME on device.
 
     \b
-    TRACE_NAME supports 3 types of inputs:
-    1. ? => select package and trace file name subsequently.
-    2. package_name => select trace file name from menu.
-    3. trace_file_name
+    TRACE_NAME supports 4 types of inputs:
+    1. ? => Select package and trace file name subsequently.
+    2. ! => Select trace file from last set package name
+    3. package_name => select trace file name from menu.
+    4. trace_file_name
 
     \b
     >> Example 1: Replay trace from selections.
@@ -40,8 +41,8 @@ def replay(trace_name, pause_frame, surface_index,
     replayer_activity = f'{replayer_name}/android.app.NativeActivity'
     utils.stop_app(replayer_name)
 
-    if trace_name == '?':
-        app_name = utils.get_valid_app_name(trace_name)
+    if trace_name in ['?', '!']:
+        app_name = config.get_valid_app_name(trace_name)
         trace_name = app_name
     else:
         app_name = utils.extract_package_name(trace_name)

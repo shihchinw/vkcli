@@ -49,6 +49,12 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
     """Configure active layer settings.
 
     \b
+    <app_name> could be set to:
+        ? Select entity from prompt menu later
+        ! Use last used app_name
+        Any other string
+
+    \b
     >> Example 1: Add VK_LAYER_foo:VK_LAYER_bar globally.
     $ vk layer --add VK_LAYER_foo:VK_LAYER_bar
 
@@ -66,6 +72,8 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
 
     if add_layer_str and clear:
         raise click.UsageError('--add can not be used with --clear')
+    elif set_layer_str and (add_layer_str or remove_layer_str):
+        raise click.UsageError('--set can not be used with --add or --remove')
 
     if clear:
         utils.enable_gpu_debug_layers(False)
@@ -77,7 +85,7 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
 
     if app_name:
         try:
-            app_name = utils.get_valid_app_name(app_name)
+            app_name = config.get_valid_app_name(app_name)
         except click.BadParameter as e:
             e.show()
             return

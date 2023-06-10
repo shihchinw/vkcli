@@ -2,6 +2,7 @@ import click
 import glob
 import os
 
+import vk.config as  config
 import vk.utils as utils
 
 @click.command()
@@ -15,6 +16,12 @@ def install(app_name, layer_path):
 
     Global layer installation requires root access. Without root access, we need to specify
     --app to install app-wise layers.
+
+    \b
+    <app_name> could be set to:
+        ? Select entity from prompt menu later
+        ! Use last used app_name
+        Any other string
 
     \b
     >> Example 1: Install layer.so to based directory of target application <app_name>.
@@ -43,12 +50,11 @@ def install(app_name, layer_path):
         click.echo('Install layers globally (require ROOT access!)')
         utils.adb_exec('root')
         utils.adb_exec('disable-verity')
-        utils.adb_exec('root')
         utils.adb_exec('shell setenforce 0')
         dst_folder = '/data/local/debug/vulkan'
         utils.create_folder_if_not_exists(dst_folder)
     else:
-        app_name = utils.get_valid_app_name(app_name)
+        app_name = config.get_valid_app_name(app_name)
         dst_folder = '/data/local/tmp/'
 
     for filepath in filepath_list:
