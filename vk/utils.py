@@ -136,6 +136,13 @@ def check_layer_in_app_folder(app_name, filename):
     except RuntimeError as e:
         return False
 
+def check_layer_in_global_folder(filename):
+    try:
+        adb_exec(f'shell ls /data/local/debug/vulkan/{filename}')
+        return True
+    except RuntimeError as e:
+        return False
+
 @adb_cmd()
 def create_folder_if_not_exists(folder_path):
     return f'shell if [ ! -d {folder_path} ]; then mkdir -p {folder_path}; fi'
@@ -161,6 +168,10 @@ def get_package_list(only_debuggable=False):
 @adb_cmd(split_result=True)
 def list_dir(folder_path):
     return f'shell if [ -d {folder_path} ]; then ls {folder_path}; fi'
+
+@adb_cmd()
+def delete_dir(folder_path):
+    return f'shell rm -r {folder_path}'
 
 @adb_cmd()
 def set_debug_vulkan_layers(layer_names=None):
@@ -290,3 +301,16 @@ def extract_package_name(name: str) -> str:
 def extract_trace_name(name: str) -> str:
     search_obj = re.search('-([\w.-]+)', name)
     return search_obj.group(1) if search_obj else ''
+
+
+def acquire_valid_input(message: str, validate_set: set):
+    """Acquire valid user input.
+
+    Args:
+        message: prompt message.
+        validate_set: set of validated string tokens.
+    """
+    while True:
+        ret = input(message)
+        if ret in validate_set:
+            return ret

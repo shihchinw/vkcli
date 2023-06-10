@@ -21,15 +21,24 @@ class Settings:
                 os.makedirs(folder_path)
 
             self.data = {
+                'app_name': None,
                 'layerset' : {
-                }
+                },
             }
 
         self.layer_presets = self.data['layerset']
+        self.last_app_name = self.data['app_name']
 
     def __store(self):
         with open(self.filepath, 'w') as f:
             json.dump(self.data, f)
+
+    def get_last_app_name(self):
+        return self.last_app_name
+
+    def set_last_app_name(self, app_name):
+        self.data['app_name'] = app_name
+        self.__store()
 
     def get_layer_preset_names(self):
         return list(self.layer_presets.keys())
@@ -130,3 +139,16 @@ class GfxrConfigSettings:
         if enable_log:
             self.log_path = f'{filepath_on_device}.log'
             utils.adb_setprop('debug.gfxrecon.log_file', self.log_path)
+
+
+def get_valid_app_name(app_name: str):
+    settings = Settings()
+
+    if app_name == '!':
+        last_app_name = settings.get_last_app_name()
+        app_name = last_app_name if last_app_name else '?'
+
+    app_name = utils.get_valid_app_name(app_name)
+    settings.set_last_app_name(app_name)
+    click.echo(f'Valid app name: {app_name}')
+    return app_name
