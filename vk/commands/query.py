@@ -8,7 +8,8 @@ class QueryMode(IntEnum):
     App = 1
     Layer = 2
     LayerSet = 3
-
+    Platform = 4
+    VkInfo = 5
 
 def _print_app_trace_list(app_name: str) -> None:
     """Print trace list with indentiation."""
@@ -76,11 +77,21 @@ def show_layer_state(show_details: bool) -> None:
         click.echo(f'gpu_debug_app: {debug_app_name}')
         click.echo(f'gpu_debug_layers: {debug_app_layer_info}')
 
+def __show_platform_info():
+    property_list = ['ro.product.model', 'ro.build.version.sdk', 'ro.hardware', 'ro.hardware.egl', 'ro.hardware.vulkan']
+
+    for prop in property_list:
+        print(f'{prop}:', utils.adb_getprop(prop))
+
+    click.echo(utils.adb_exec('shell dumpsys SurfaceFlinger | grep GLES'))
+
 
 @click.command()
-@click.option('--app', 'mode', flag_value=int(QueryMode.App), help='Show installed packages.')
-@click.option('--layer', 'mode', flag_value=int(QueryMode.Layer), help='Show current active layers.')
-@click.option('--layerset', 'mode', flag_value=int(QueryMode.LayerSet), help='Show layer preset.')
+@click.option('-a', '--app', 'mode', flag_value=int(QueryMode.App), help='Show installed packages.')
+@click.option('-l', '--layer', 'mode', flag_value=int(QueryMode.Layer), help='Show current active layers.')
+@click.option('-ls', '--layerset', 'mode', flag_value=int(QueryMode.LayerSet), help='Show layer preset.')
+@click.option('-p', '--platform', 'mode', flag_value=int(QueryMode.Platform), help='Show platform info')
+@click.option('-vk', '--vkinfo', 'mode', flag_value=int(QueryMode.VkInfo), help='Show Vulkan info.')
 @click.option('--trace', type=str, metavar='<app_name>', help='Show traces of <app_name> on device.')
 @click.option('--detailed', 'show_details', is_flag=True, help='Show detailed system configurations.')
 def query(mode, trace, show_details):
@@ -102,6 +113,10 @@ def query(mode, trace, show_details):
     if mode == QueryMode.App:
         result = utils.get_package_list()
         click.echo('\n'.join(result))
+    elif mode == QueryMode.Platform:
+        __show_platform_info()
+    elif mode == QueryMode.VkInfo:
+        click.echo(utils.adb_exec('shell cmd gpu vkjson'))
     elif trace is not None:
         _show_traces_on_device(trace)
     elif mode == QueryMode.Layer:

@@ -86,6 +86,10 @@ def adb_exec(cmd):
     return cmd
 
 @adb_cmd()
+def adb_getprop(name):
+    return f'shell getprop {name}'
+
+@adb_cmd()
 def adb_setprop(option, value):
     return f'shell setprop {option} {value}'
 
