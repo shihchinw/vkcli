@@ -12,6 +12,7 @@ Usage: vk [OPTIONS] COMMAND [ARGS]...
 
 Commands:
   dump-api  Dump API log with VK_LAYER_LUNARG_api_dump.
+  dump-img  Dump screenshots by VK_LAYER_LUNARG_screenshot.
   install   Install layers to device.
   layer     Configure active layer settings.
   layerset  Customize layer presets.

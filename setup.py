@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='vkcli',
-    version='0.1.0',
+    version='0.2.0',
     description='Command line tool for Vulkan configuration on Android',
     author='Shih-Chin Weng',
     author_email='shihchin.weng@gmail.com',
