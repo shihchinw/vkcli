@@ -1,7 +1,8 @@
 # Prerequisites
 
 * [Python 3.x](https://www.python.org/downloads/)
-* [GFXReconstruct](https://github.com/LunarG/gfxreconstruct/releases)
+* [GFXReconstruct](https://github.com/LunarG/gfxreconstruct/releases) for `record`, `replay`
+* [LunarG/VulkanTools](https://github.com/LunarG/VulkanTools): VK_LAYER_LUNARG_api_dump, VK_LAYER_LUNARG_screenshot for `dump-api`, `dump-img`
 
 # Installation
 
@@ -20,8 +21,10 @@ vkcli uses **GFXReconstruct** to record and replay API traces. The easiest way f
 ```
 $ cd <gfxreconstruct-vx.x.x>
 $ adb install tools\replay-debug.apk
+
 $ vk install --app ? layer\arm64-v8a
-Layers: ['\layer\arm64-v8a\libVkLayer_gfxreconstruct.so']
+Found layers:
+.\layer\arm64-v8a\libVkLayer_gfxreconstruct.so
 
   No.  App
 ────────────────────────────────────────────────────────────────────────────────
@@ -29,10 +32,36 @@ Layers: ['\layer\arm64-v8a\libVkLayer_gfxreconstruct.so']
     2  com.lunarg.gfxreconstruct.replay
 Please choose app package (ctrl+c to abort): 1
 
+Valid app name: com.khronos.vulkan_samples
+Install layers to 'com.khronos.vulkan_samples' successfully.
+```
+
+Likewise, before using dump commands, we need to install VK_LAYER_LUNARG_api_dump and VK_LAYER_LUNARG_screenshot layers. We could [build from source](https://github.com/LunarG/VulkanTools/blob/main/BUILD.md) or download pre-built *.so from [release page](https://github.com/shihchinw/vkcli/releases) of vkcli.
+
+```
+$ vk install --app ? <folder_of_layers>
+Found layers:
+<folder_of_layers>\libVkLayer_api_dump.so
+<folder_of_layers>\libVkLayer_screenshot.so
+
+  No.  App
+────────────────────────────────────────────────────────────────────────────────
+    1  com.khronos.vulkan_samples
+    2  com.lunarg.gfxreconstruct.replay
+Please choose app package (ctrl+c to abort): 1
+
+Valid app name: com.khronos.vulkan_samples
 Install layers to 'com.khronos.vulkan_samples' successfully.
 ```
 
 > For other useful layers, please refer to [LunarG/VulkanTools.](https://github.com/LunarG/VulkanTools)
+
+# General Tips
+## Alias for Application Name (?, !)
+
+To save keystrokes for specifying application name, we could use:
+* `?` to select entity from installed packages
+* `!` for last specified app name
 
 # Record API Trace
 
@@ -213,4 +242,53 @@ $ vk query --layerset
     1  foobar      *                           VK_LAYER_foo:VK_LAYER_bar
     2  snap        *
                    com.khronos.vulkan_samples  VK_LAYER_screenshot
+```
+
+# Dump API Log or Screenshots
+
+API log and screenshots are very useful for application debugging. To make VK_LAYER_LUNARG_api_dump, VK_LAYER_LUNARG_screenshot layers easy to use via command line, `dump-api` and `dump-img` would properly setup layer and pull results from device at the end of execution.
+
+```
+$ vk dump-api --app !  # Use alias of last specified app_name.
+Valid app name: com.khronos.vulkan_samples
+Start dumping API (range=0-0) to /sdcard/Android/vk_apidump_0611_081722.log
+Want to Stop or Stop-and-Pull (s/sp)? sp
+
+Copying /sdcard/Android/vk_apidump_0611_081722.log to ./output
+/sdcard/Android/vk_apidump_0611_081722.log has been deleted on device.
+```
+
+It's quite similarly for `dump-img` to dump screenshots. Here we show how to specify `--range 10-5-3` to
+* start at frame 10
+* dump 5 screenshots
+* every 3 frames
+
+```
+$ vk dump-img --app ! --range 10-5-3  # Use alias of last specified app_name.
+Valid app name: com.khronos.vulkan_samples
+Start dumping screenshots (range [start-count-step]=10-5-3) to /sdcard/Android/vkcli/screenshot_0611_082749
+Want to Stop or Stop-and-Pull (s/sp)? sp  # Once we are done, key in sp to pull results.
+
+Copying /sdcard/Android/vkcli/screenshot_0611_082749 to ./output
+/sdcard/Android/vkcli/screenshot_0611_082749 has been deleted on device.
+
+$ ls ./output/screenshot_0611_082749
+10.ppm  13.ppm
+```
+
+## Troubleshooting: Layer Not Found
+
+If vkcli found there is no installed layer for corresponding dump command, it would prompt `layer not found` error. Please follow the [instructions](#layers) of layer installation to resolve the error.
+
+```
+$ vk dump-api --app ? --range 10-5-3
+  No.  App
+────────────────────────────────────────────────────────────────────────────────
+    1  com.khronos.vulkan_samples
+    2  com.foo.bar
+Please choose app package (ctrl+c to abort): 2
+
+Valid app name: com.foo.bar
+Error: Can not find 'libVkLayer_api_dump.so' installed for com.foo.bar.
+Please install the layer for the app first.
 ```
