@@ -139,7 +139,7 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
 @click.option('-r', '--range', type=str, default='1-5', help='Output frame range "start-count(-step)"')
 @click.option('-d', '--destination', 'local_dst_folder', type=click.Path(),
               metavar='<path>', default='./output', help='Local output folder path.')
-@click.argument('filename', type=click.Path(), default='screenshot')
+@click.argument('filename', type=click.Path(), default='')
 def dump_img(app_name, range, filename, local_dst_folder):
     """Dump screenshots by VK_LAYER_LUNARG_screenshot.
 
@@ -168,15 +168,15 @@ def dump_img(app_name, range, filename, local_dst_folder):
     """
 
     layer_filename = 'libVkLayer_screenshot.so'
+
     if app_name:
-        try:
-            app_name = config.get_valid_app_name(app_name)
-            if not utils.check_layer_in_app_folder(app_name, layer_filename):
-                utils.log_error(f"Can not find {layer_filename} installed for {app_name}.\n"
-                                "Please install the layer for the app first.")
-                return
-        except click.BadParameter as e:
-            e.show()
+        app_name = config.get_valid_app_name(app_name)
+        if not filename:
+            filename = app_name
+
+        if not utils.check_layer_in_app_folder(app_name, layer_filename):
+            utils.log_error(f"Can not find {layer_filename} installed for {app_name}.\n"
+                            "Please install the layer for the app first.")
             return
 
         try:
@@ -191,8 +191,11 @@ def dump_img(app_name, range, filename, local_dst_folder):
                         "Please install the layer first (require ROOT access).")
         return
 
+    if not filename:
+        filename = 'screenshot'
+
     time_str = utils.get_time_str()
-    output_folder_on_device = f"/sdcard/Android/vkcli/{filename}_{time_str}"
+    output_folder_on_device = f'/sdcard/Android/vkcli/{filename}_{time_str}.imgs'
 
     try:
         utils.adb_setprop('debug.vulkan.screenshot.dir', output_folder_on_device)
