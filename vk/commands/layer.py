@@ -44,8 +44,10 @@ def _remove_layers(layer_str, current_layers, set_layers_func):
               help='Remove layers <layer1:layer2:layerN>.')
 @click.option('--set', 'set_layer_str', metavar='<layer_names>', type=str,
               help='Set layers <layer1:layer2:layerN>.')
+@click.option('-l', '--list', 'show_layer_installation', is_flag=True, default=False,
+              help='List installed layers.')
 @click.option('--clear', is_flag=True, help='Clear active layer settings.')
-def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
+def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, show_layer_installation, clear):
     """Configure active layer settings.
 
     \b
@@ -66,6 +68,10 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
     >> Example 3: Add VK_LAYER_foo to selected app.
     $ vk layer --app ? --add VK_LAYER_foo
 
+    \b
+    >> Example 4: List installed layers in package folder of com.foo.bar.
+    $ vk layer -l --app com.foo.bar
+
     \f
     https://developer.android.com/ndk/guides/graphics/validation-layer#enable-layers-outside-app
     """
@@ -82,15 +88,20 @@ def layer(app_name, add_layer_str, remove_layer_str, set_layer_str, clear):
         utils.set_debug_vulkan_layers(None)
         click.echo('Clear all relevant layer settings.')
         return
+    elif show_layer_installation:
+        if app_name:    # app_name could be ?, ! or any non-empty string.
+            app_name = config.get_valid_app_name(app_name)
+
+        installed_layers = utils.get_installed_layers(app_name)
+        click.echo(f'Found {len(installed_layers)} installed layers:')
+        click.echo('-' * 50)
+        click.echo('\n'.join(installed_layers))
+        return
 
     active_app_name = utils.get_gpu_debug_app()
 
-    if app_name:
-        try:
-            app_name = config.get_valid_app_name(app_name)
-        except click.BadParameter as e:
-            e.show()
-            return
+    if app_name: # app_name could be ?, ! or any non-empty string.
+        app_name = config.get_valid_app_name(app_name)
 
         # Set per-app layer configuration.
         utils.enable_gpu_debug_layers(True)

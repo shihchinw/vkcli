@@ -147,6 +147,22 @@ def check_layer_in_global_folder(filename):
     except RuntimeError as e:
         return False
 
+def get_installed_layers(app_name=None):
+    """Return filenames of installed layers."""
+
+    filenames = []
+
+    if not app_name:
+        filenames = list_dir('/data/local/debug/vulkan')
+
+    elif is_userdebug_build():
+        filenames = list_dir(f'data/data/{app_name}')
+    else:
+        filenames = adb_exec(f'shell run-as {app_name} ls').split()
+
+    return [x for x in filenames if x.endswith('.so')]
+
+
 @adb_cmd()
 def create_folder_if_not_exists(folder_path):
     return f'shell if [ ! -d {folder_path} ]; then mkdir -p {folder_path}; fi'
@@ -154,6 +170,9 @@ def create_folder_if_not_exists(folder_path):
 @adb_cmd()
 def check_file_existence(filepath):
     return f'shell if [ -f {filepath} ]; then echo True; fi'
+
+def is_userdebug_build():
+    return adb_getprop('ro.bootimage.build.type') == 'userdebug'
 
 @adb_cmd(split_result=True)
 def get_package_list(only_debuggable=False):
@@ -253,7 +272,8 @@ def get_valid_app_name(app_name: str) -> str:
 
     When app_name is '?', it will prompt a menu for selection.
     """
-    app_list = get_package_list(only_debuggable=(app_name == '?'))
+    show_only_debuggable = (app_name == '?') and not is_userdebug_build()
+    app_list = get_package_list(show_only_debuggable)
 
     if app_name == '?':
         app_name = get_selected_package_name(app_list)
