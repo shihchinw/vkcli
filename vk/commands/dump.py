@@ -52,7 +52,7 @@ class DumpSession:
 @click.option('-t', '--timestamp', 'show_timestamp', is_flag=True, default=False, help='Show timestamp of function calls.')
 @click.option('-d', '--destination', 'local_dst_folder', type=click.Path(),
               metavar='<path>', default='./output', help='Local output folder path.')
-@click.argument('filename', type=click.Path(), default='vk_apidump')
+@click.argument('filename', type=click.Path(), default='')
 def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder):
     """Dump API log with VK_LAYER_LUNARG_api_dump.
 
@@ -81,25 +81,29 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
     """
 
     layer_filename = 'libVkLayer_api_dump.so'
+    output_dst_folder = '/sdcard/Android'
+
     if app_name:
-        try:
-            app_name = config.get_valid_app_name(app_name)
-            if not utils.check_layer_in_app_folder(app_name, layer_filename):
-                utils.log_error(f"Can not find '{layer_filename}' installed for {app_name}.\n"
-                                "Please install the layer for the app first.")
-                return
-        except click.BadParameter as e:
-            e.show()
+        app_name = config.get_valid_app_name(app_name)
+        output_dst_folder = f'/data/data/{app_name}'
+        if not filename:
+            filename = app_name
+        if not utils.check_layer_in_app_folder(app_name, layer_filename):
+            utils.log_error(f"Can not find '{layer_filename}' installed for {app_name}.\n"
+                            "Please install the layer for the app first.")
             return
     elif not utils.check_layer_in_global_folder(layer_filename):
         utils.log_error(f"Can not find {layer_filename} installed globally.\n"
                         "Please install the layer first (require ROOT access).")
         return
 
+    if not filename:
+        filename = 'vk_apidump'
+
     time_str = utils.get_time_str()
     ext = 'log' if format == 'text' else format
-    filepath = f"{filename}_{time_str}.{ext}"
-    output_path_on_device = f"/sdcard/Android/{filepath}"
+    filepath = f"{filename}_{time_str}.api.{ext}"
+    output_path_on_device = f'{output_dst_folder}/{filepath}'
 
     try:
         # Configure API dump options
