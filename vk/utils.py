@@ -134,8 +134,13 @@ def copy_layer_file_to_app_folder(app_name, filename):
     return f'shell run-as {app_name} cp /data/local/tmp/{filename} .'
 
 def check_layer_in_app_folder(app_name, filename):
+    if is_userdebug_build():
+        cmd = f'shell ls /data/data/{app_name}/{filename}'
+    else:
+        cmd = f'shell run-as {app_name} ls {filename}'
+
     try:
-        adb_exec(f'shell run-as {app_name} ls {filename}')
+        adb_exec(cmd)
         return True
     except RuntimeError as e:
         return False
