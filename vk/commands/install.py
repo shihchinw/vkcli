@@ -46,6 +46,8 @@ def install(app_name, layer_path):
         for filepath in filepath_list:
             click.echo(filepath)
 
+    is_userdebug_build = utils.is_userdebug_build()
+
     if app_name is None:
         click.echo('Install layers globally (require ROOT access!)')
         utils.adb_exec('root')
@@ -55,12 +57,17 @@ def install(app_name, layer_path):
         utils.create_folder_if_not_exists(dst_folder)
     else:
         app_name = config.get_valid_app_name(app_name)
-        dst_folder = '/data/local/tmp/'
+        if is_userdebug_build:
+            dst_folder = f'/data/data/{app_name}'
+        else:
+            dst_folder = '/data/local/tmp/'
 
     for filepath in filepath_list:
         filename = os.path.basename(filepath)
         utils.adb_push(filepath, dst_folder)
-        if app_name:
+        if is_userdebug_build:
+            utils.adb_exec(f'shell chmod +x {dst_folder}/{filename}')
+        elif app_name:
             utils.copy_layer_file_to_app_folder(app_name, filename)
 
     if app_name:
