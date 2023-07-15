@@ -230,9 +230,9 @@ def set_gpu_debug_app(app_name : str):
     cmd = f'settings put global gpu_debug_app \'{app_name}\''
     return f'shell {cmd}' if _IS_WIN else f'shell "{cmd}"'
 
-@adb_cmd()
 def get_gpu_debug_app():
-    return f'shell settings get global gpu_debug_app'
+    app_name = adb_exec('shell settings get global gpu_debug_app')
+    return None if app_name == 'null' else app_name
 
 @adb_cmd()
 def set_gpu_debug_layers(layer_names=None):
@@ -242,9 +242,9 @@ def set_gpu_debug_layers(layer_names=None):
     cmd = 'settings put global gpu_debug_layers \'{}\''.format(':'.join(layer_names))
     return f'shell {cmd}' if _IS_WIN else f'shell "{cmd}"'
 
-@adb_cmd(split_result=True, separator=':')
 def get_gpu_debug_layers():
-    return 'shell settings get global gpu_debug_layers'
+    layers = adb_exec('shell settings get global gpu_debug_layers').split(':')
+    return [] if layers[0] in ('null', '') else layers
 
 @adb_cmd()
 def get_gpu_debug_layers_value():
