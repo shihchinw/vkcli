@@ -1,4 +1,5 @@
 import click
+import os
 import vk.config as config
 import vk.utils as utils
 
@@ -9,12 +10,20 @@ import vk.utils as utils
               help='Pause after replaying frame N.')
 @click.option('-si', '--surface-index', default=-1, metavar='N',
               help='Restrict rendering to Nth surface object.')
+@click.option('-ss', '--screenshots', 'screenshots_range', type=str, metavar='<range>',
+              help='Dump screenshots for the specified frames <range>. Ex. 1,5-10')
+@click.option('-sss', '--screenshot-scale', type=float, default=1.0, metavar='',
+              help='Screenshot scale')
+@click.option('-sspf', '--screenshot-prefix', type=str, default='screenshot',
+              help='Prefix to screenshot file names')
 @click.option('-sfa', '--skip-failed-allocations', is_flag=True,
               help='Skip failed allocations during capture.')
 @click.option('-opc', '--omit-pipeline-cache', is_flag=True,
               help='Omit pipeline cache data.')
-def replay(trace_name, pause_frame, surface_index,
-        skip_failed_allocations, omit_pipeline_cache):
+@click.option('--pull', 'pull_folder', type=click.Path(), metavar='<local_folder>',
+              help='Pull output files from device to <local_folder>.')
+def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot_scale, screenshot_prefix,
+        skip_failed_allocations, omit_pipeline_cache, pull_folder):
     """Replay TRACE_NAME on device.
 
     \b
@@ -35,6 +44,10 @@ def replay(trace_name, pause_frame, surface_index,
     \b
     >> Example 3: Replay trace with explicit name.
     $ vk replay com.foo.bar-test.gfxr
+
+    \b
+    >> Example 4: Replay trace and dump screenshots of 1st and 5-10th frames to local folder.
+    $ vk replay com.foo.bar-test.gfxr -ss 1,5-10
     """
 
     replayer_name = 'com.lunarg.gfxreconstruct.replay'
@@ -66,6 +79,16 @@ def replay(trace_name, pause_frame, surface_index,
         args.append(f'--pause-frame {pause_frame}')
     if surface_index:
         args.append(f'--surface-index {surface_index}')
+
+    if screenshots_range:
+        device_screenshot_folder = settings.get_temp_snap_folder_on_device()
+        utils.create_folder_if_not_exists(device_screenshot_folder)
+        args.append(f'--screenshots {screenshots_range}')
+        args.append(f'--screenshot-dir {device_screenshot_folder}')
+        args.append(f'--screenshot-prefix {screenshot_prefix}')
+        args.append(f'--screenshot-scale {screenshot_scale}')
+        args.append(f'--screenshot-format png')
+
     if skip_failed_allocations:
         args.append('--sfa')
     if omit_pipeline_cache:
@@ -77,4 +100,15 @@ def replay(trace_name, pause_frame, surface_index,
 
     if 'Error:' in result:
         click.echo(result)
+    elif screenshots_range:
+        utils.wait_until_app_exit(replayer_name)
+
+        if not pull_folder:
+            pull_folder = f'./output/{app_name}/{trace_name}'
+
+        if not os.path.exists(pull_folder):
+            os.makedirs(pull_folder)
+
+        utils.adb_pull(device_screenshot_folder, pull_folder)
+        utils.delete_dir(device_screenshot_folder)
 

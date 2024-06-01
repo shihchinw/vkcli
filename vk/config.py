@@ -101,13 +101,16 @@ class GfxrConfigSettings:
         self.app_name = app_name
 
         self.trace_folder = f'{self.root_trace_folder}/{app_name}'
-        self.snap_folder = f'{self.root_snap_folder}/{app_name}'
         self.trace_path = None
         self.log_path = None
 
     def resolve_trace_path_on_device(self, filename):
         # Since package name can't contain '-', we use it to sepearate package name and filename.
         return f'{self.trace_folder}/{self.app_name}-{filename}'
+
+    def get_temp_snap_folder_on_device(self):
+        time_str = utils.get_time_str()
+        return f'{self.root_snap_folder}/{time_str}'
 
     def get_trace_path_on_device(self, filename):
         return f'{self.trace_folder}/{filename}'
