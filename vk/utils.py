@@ -109,11 +109,11 @@ def stop_app(app_name):
 
 @adb_cmd()
 def wait_until_app_exit(app_name):
-    return f'shell while [ $(pidof {app_name}) ]; do (sleep 1); done'
+    return f'shell while [ "$(pidof {app_name})" ]; do (sleep 1); done'
 
 @adb_cmd()
 def wait_until_app_launch(app_name):
-    return f'shell while [ ! $(pidof {app_name}) ]; do (sleep 1); done'
+    return f'shell while [ ! "$(pidof {app_name})" ]; do (sleep 1); done'
 
 @adb_cmd()
 def install_apk(filepath):
