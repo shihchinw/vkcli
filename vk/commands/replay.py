@@ -36,11 +36,12 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
     """Replay TRACE_NAME on device.
 
     \b
-    TRACE_NAME supports 4 types of inputs:
+    TRACE_NAME supports 5 types of inputs:
     1. ? => Select package and trace file name subsequently.
     2. ! => Select trace file from last set package name
-    3. package_name => select trace file name from menu.
-    4. trace_file_name
+    3. $ => Last used trace name
+    4. package_name => select trace file name from menu.
+    5. trace_file_name
 
     \b
     >> Example 1: Replay trace from selections.
@@ -71,6 +72,8 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         app_name = config.get_valid_app_name(trace_name)
         trace_name = app_name
     else:
+        if trace_name == '$':
+            trace_name = config.get_last_trace_name()
         app_name = utils.extract_package_name(trace_name)
 
     settings = config.GfxrConfigSettings(app_name)
@@ -79,13 +82,13 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         trace_list = utils.list_dir(settings.get_trace_folder_on_device())
         trace_name = utils.get_selected_item(trace_list, \
             'Available traces:', 'Please choose a trace (ctrl+c to abort)')
-        trace_name = trace_name[len(app_name)+1:]  # Remove prefix package name.
-        trace_path = settings.resolve_trace_path_on_device(trace_name)
-    else:
-        trace_name = trace_name[len(app_name)+1:]  # Remove prefix package name.
-        trace_path = settings.resolve_trace_path_on_device(trace_name)
-        if not utils.check_file_existence(trace_path):
-            raise click.BadParameter('{} does not exist!'.format(trace_path))
+
+    capture_tag = settings.extract_trace_capture_tag(trace_name)
+    trace_path = settings.resolve_trace_path_on_device(capture_tag)
+    if not utils.check_file_existence(trace_path):
+        raise click.BadParameter('{} does not exist!'.format(trace_path))
+
+    config.set_last_trace_name(trace_name)
 
     args = []
     if pause_frame:
@@ -143,7 +146,7 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         if measure_frame_range:
             filename = os.path.basename(fps_file_on_device)
             local_filepath = os.path.join(pull_folder, filename)
-            click.echo(f'Pulling FPS measurement file to {local_filepath}')
+            click.echo(f'Pull FPS measurement file to {local_filepath}')
             utils.adb_pull(fps_file_on_device, local_filepath)
             utils.adb_exec(f'shell rm {fps_file_on_device}')
 

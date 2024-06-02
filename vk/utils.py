@@ -330,8 +330,12 @@ def extract_package_name(name: str) -> str:
     return match_obj.group(0) if match_obj else ''
 
 
-def extract_trace_name(name: str) -> str:
-    search_obj = re.search('-([\w.-]+)', name)
+def extract_trace_capture_tag(trace_name: str) -> str:
+    """Extract capture tag from trace_name defined as <app_name>-<capture_tag>.
+
+    Ex. If <trace_name> is 'com.khronos.vulkan_samples-test1-tag.gfxr' => <capture_tag> is 'test1-tag.gfxr'
+    """
+    search_obj = re.search('-([\w.-]+)', trace_name)
     return search_obj.group(1) if search_obj else ''
 
 

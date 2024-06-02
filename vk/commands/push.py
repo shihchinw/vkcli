@@ -41,8 +41,8 @@ def _push_trace_file(filepath, session):
             return
 
     # Overwrite existent file on device.
-    trace_name = utils.extract_trace_name(trace_filename)
-    dst_path_on_device = settings.resolve_trace_path_on_device(trace_name)
+    capture_tag = utils.extract_trace_capture_tag(trace_filename)
+    dst_path_on_device = settings.resolve_trace_path_on_device(capture_tag)
     dst_bak_path_on_device = utils.get_bak_filepath(dst_path_on_device)
     utils.adb_exec(f'shell mv {dst_path_on_device} {dst_bak_path_on_device}')
     click.echo(f'Push {filepath} to {trace_folder_on_device}')

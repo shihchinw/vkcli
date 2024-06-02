@@ -7,5 +7,5 @@ def test_extract_package_name():
 
 def test_extract_trace_name():
     name = 'com.khronos.vulkan_samples-test1-tag.gfxr'
-    trace_name = utils.extract_trace_name(name)
+    trace_name = utils.extract_trace_capture_tag(name)
     assert trace_name == 'test1-tag.gfxr'
