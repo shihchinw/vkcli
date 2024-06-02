@@ -11,19 +11,28 @@ import vk.utils as utils
 @click.option('-si', '--surface-index', default=-1, metavar='N',
               help='Restrict rendering to Nth surface object.')
 @click.option('-ss', '--screenshots', 'screenshots_range', type=str, metavar='<range>',
-              help='Dump screenshots for the specified frames <range>. Ex. 1,5-10')
+              help='Dump screenshots for the specified frames <range>. Ex. 1,5-10.')
 @click.option('-sss', '--screenshot-scale', type=float, default=1.0, metavar='',
-              help='Screenshot scale')
+              help='Screenshot scale.')
 @click.option('-sspf', '--screenshot-prefix', type=str, default='screenshot',
-              help='Prefix to screenshot file names')
+              help='Prefix to screenshot file names.')
 @click.option('-sfa', '--skip-failed-allocations', is_flag=True,
               help='Skip failed allocations during capture.')
 @click.option('-opc', '--omit-pipeline-cache', is_flag=True,
               help='Omit pipeline cache data.')
+@click.option('-mfr', '--measure-frame-range', type=str, metavar='<start-end>',
+              help='Custom frame range <start-end> for FPS measurement')
+@click.option('-qmfr', '--quit-after-measurement-range', is_flag=True,
+              help='Quit after measurement range.')
+@click.option('--flush-measurement-range', is_flag=True,
+              help='Flush and wait for GPU to finish works at start and end of the measurement range.')
+@click.option('--flush-inside-measurement-range', is_flag=True,
+              help='Flush and wait for GPU to finish works at the end of each frame in the measurement range.')
 @click.option('--pull', 'pull_folder', type=click.Path(), metavar='<local_folder>',
               help='Pull output files from device to <local_folder>.')
 def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot_scale, screenshot_prefix,
-        skip_failed_allocations, omit_pipeline_cache, pull_folder):
+        skip_failed_allocations, omit_pipeline_cache, measure_frame_range, quit_after_measurement_range,
+        flush_measurement_range, flush_inside_measurement_range, pull_folder):
     """Replay TRACE_NAME on device.
 
     \b
@@ -48,6 +57,10 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
     \b
     >> Example 4: Replay trace and dump screenshots of 1st and 5-10th frames to local folder.
     $ vk replay com.foo.bar-test.gfxr -ss 1,5-10
+
+    \b
+    >> Example 5: Replay trace and measure FPS between 5-10th frames.
+    $ vk replay com.foo.bar-test.gfxr -mfr 5-50
     """
 
     replayer_name = 'com.lunarg.gfxreconstruct.replay'
@@ -94,13 +107,27 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
     if omit_pipeline_cache:
         args.append('--opcd')
 
+    fps_file_on_device = None
+    if measure_frame_range:
+        args.append(f'--mfr {measure_frame_range}')
+        fps_file_on_device = settings.get_temp_filepath_on_device('gfxr_fps', '.json')
+        args.append(f'--measurement-file {fps_file_on_device}')
+        if quit_after_measurement_range:
+            args.append('--quit-after-measurement-range')
+        if flush_measurement_range:
+            args.append('--flush-measurement-range')
+        if flush_inside_measurement_range:
+            args.append('--flush-inside-measurement-range')
+
     args.append(trace_path)
     extras = "--es 'args' '{}'".format(' '.join(args))
     result = utils.start_app_activity(replayer_activity, extras)
 
     if 'Error:' in result:
         click.echo(result)
-    elif screenshots_range:
+        return
+
+    if screenshots_range or measure_frame_range:
         utils.wait_until_app_exit(replayer_name)
 
         if not pull_folder:
@@ -109,6 +136,14 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         if not os.path.exists(pull_folder):
             os.makedirs(pull_folder)
 
-        utils.adb_pull(device_screenshot_folder, pull_folder)
-        utils.delete_dir(device_screenshot_folder)
+        if screenshots_range:
+            click.echo(f'Pull screenshots to {pull_folder}')
+            utils.adb_pull(device_screenshot_folder, pull_folder)
+            utils.delete_dir(device_screenshot_folder)
+        if measure_frame_range:
+            filename = os.path.basename(fps_file_on_device)
+            local_filepath = os.path.join(pull_folder, filename)
+            click.echo(f'Pulling FPS measurement file to {local_filepath}')
+            utils.adb_pull(fps_file_on_device, local_filepath)
+            utils.adb_exec(f'shell rm {fps_file_on_device}')
 

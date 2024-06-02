@@ -122,6 +122,10 @@ class GfxrConfigSettings:
         filename = os.path.basename(filepath)
         return utils.extract_trace_name(filename)
 
+    def get_temp_filepath_on_device(self, name, ext):
+        time_str = utils.get_time_str()
+        return f'/sdcard/{name}_{time_str}{ext}'
+
     def set_capture_options(self, filename, frames=None, enable_log=False):
         filepath_on_device = self.resolve_trace_path_on_device(filename)
         if utils.check_file_existence(filepath_on_device):
