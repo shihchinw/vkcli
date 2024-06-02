@@ -20,6 +20,8 @@ import vk.utils as utils
               help='Skip failed allocations during capture.')
 @click.option('-opc', '--omit-pipeline-cache', is_flag=True,
               help='Omit pipeline cache data.')
+@click.option('--remove-unsupported', is_flag=True,
+              help='Removed unsupported extensions and features.')
 @click.option('-mfr', '--measure-frame-range', type=str, metavar='<start-end>',
               help='Custom frame range <start-end> for FPS measurement')
 @click.option('-qmfr', '--quit-after-measurement-range', is_flag=True,
@@ -31,8 +33,8 @@ import vk.utils as utils
 @click.option('--pull', 'pull_folder', type=click.Path(), metavar='<local_folder>',
               help='Pull output files from device to <local_folder>.')
 def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot_scale, screenshot_prefix,
-        skip_failed_allocations, omit_pipeline_cache, measure_frame_range, quit_after_measurement_range,
-        flush_measurement_range, flush_inside_measurement_range, pull_folder):
+        skip_failed_allocations, omit_pipeline_cache, remove_unsupported, measure_frame_range,
+        quit_after_measurement_range, flush_measurement_range, flush_inside_measurement_range, pull_folder):
     """Replay TRACE_NAME on device.
 
     \b
@@ -95,6 +97,8 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         args.append(f'--pause-frame {pause_frame}')
     if surface_index:
         args.append(f'--surface-index {surface_index}')
+    if remove_unsupported:
+        args.append('--remove-unsupported')
 
     if screenshots_range:
         device_screenshot_folder = settings.get_temp_snap_folder_on_device()
