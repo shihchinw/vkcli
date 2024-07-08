@@ -66,6 +66,9 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
     $ vk replay com.foo.bar-test.gfxr -mfr 5-50
     """
 
+    # Grant MANAGE_EXTERNAL_STORAGE permission for replay apk.
+    utils.adb_exec('shell appops set com.lunarg.gfxreconstruct.replay MANAGE_EXTERNAL_STORAGE allow')
+
     replayer_name = 'com.lunarg.gfxreconstruct.replay'
     replayer_activity = f'{replayer_name}/android.app.NativeActivity'
     utils.stop_app(replayer_name)
