@@ -179,6 +179,12 @@ def create_folder_if_not_exists(folder_path):
 def check_file_existence(filepath):
     return f'shell if [ -f {filepath} ]; then echo True; fi'
 
+def has_root_access():
+    try:
+        return adb_exec('shell su 0 echo true || exit 0') == 'true'
+    except RuntimeError as e:
+        return False
+
 def is_userdebug_build():
     return adb_getprop('ro.bootimage.build.type') == 'userdebug'
 

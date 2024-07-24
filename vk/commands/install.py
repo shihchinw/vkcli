@@ -93,7 +93,9 @@ def install(app_name, layer_path):
     is_userdebug_build = utils.is_userdebug_build()
 
     if app_name is None:
-        click.echo('Install layers globally (require ROOT access!)')
+        if not utils.has_root_access():
+            raise click.UsageError('Can not install layers globally without ROOT permission.\nPlease specify <app_name> for app-wise installation')
+
         utils.adb_exec('root')
         utils.adb_exec('disable-verity')
         utils.adb_exec('shell setenforce 0')
