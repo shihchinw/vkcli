@@ -23,11 +23,12 @@ class Settings:
             self.data = {
                 'app_name': None,
                 'trace_name': None,
-                'layerset' : {
-                },
+                'layerset': {},
+                'layer_bin_folder': None    # The folder contains layer *.so files on host.
             }
 
         self.layer_presets = self.data.get('layerset', {})
+        self.layer_bin_folder = self.data.get('layer_bin_folder', None)
         self.last_app_name = self.data.get('app_name', None)
         self.last_trace_name = self.data.get('trace_name', None)
 
@@ -54,6 +55,19 @@ class Settings:
 
     def get_layer_preset_items(self):
         return self.layer_presets.items()
+
+    def get_last_layer_bin_folder(self):
+        return self.layer_bin_folder
+
+    def set_last_layer_bin_folder(self, path: str):
+        self.data['layer_bin_folder'] = path
+        self.__store()
+
+    def resolve_layer_filepath(self, name: str):
+        if not self.layer_bin_folder:
+            return name
+
+        return os.path.join(self.layer_bin_folder, name)
 
     def has_layer_preset(self, name: str):
         return name in self.layer_presets
@@ -185,3 +199,12 @@ def get_last_trace_name():
 def set_last_trace_name(trace_name: str):
     settings = Settings()
     settings.set_last_trace_name(trace_name)
+
+def get_last_layer_bin_folder():
+    return Settings().get_last_layer_bin_folder()
+
+def set_last_layer_bin_folder(folder_path: click.Path):
+    Settings().set_last_layer_bin_folder(folder_path)
+
+def resolve_layer_filepath(name: str):
+    return Settings().resolve_layer_filepath(name)

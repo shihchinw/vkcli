@@ -19,6 +19,9 @@ def is_verbose():
 def log_error(msg):
     click.echo(f'Error: {msg}')
 
+def log_warning(msg):
+    click.echo(f'Warning: {msg}')
+
 class FrameRange(click.ParamType):
     name = 'FrameRange'
 
@@ -301,12 +304,14 @@ def get_selected_item(item_list, list_description, inquiry_message, extra_attr_l
         else:
             click.echo(f'{idx:02} {item}')
 
+    click.echo('')
     list_size = len(item_list)
     selected_idx = -1
     while not (0 < selected_idx <= list_size):
         selected_idx = click.prompt(inquiry_message, type=int)
         if not (0 < selected_idx <= list_size):
             click.echo(f'Selected index {selected_idx} is out-of-range!')
+        click.echo('')
 
     return item_list[selected_idx - 1]
 
