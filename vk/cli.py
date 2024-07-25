@@ -10,6 +10,7 @@ from .commands.push import push
 from .commands.query import query
 from .commands.record import record
 from .commands.replay import replay
+from .commands.validate import validate
 
 
 @click.group()
@@ -28,7 +29,7 @@ cli.add_command(push)
 cli.add_command(query)
 cli.add_command(record)
 cli.add_command(replay)
-
+cli.add_command(validate)
 
 def main():
     try:

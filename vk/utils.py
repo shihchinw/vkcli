@@ -94,7 +94,27 @@ def adb_getprop(name):
 
 @adb_cmd()
 def adb_setprop(option, value):
+    if not value:
+        value = '\\\"\\\"'
     return f'shell setprop {option} {value}'
+
+def is_device_screen_locked():
+    # Use 'mDreamingLockscreen' to determine if screen is locked. https://android.stackexchange.com/a/220889
+    try:
+        result = adb_exec('shell dumpsys window | grep mDreamingLockscreen')
+        is_locked = re.search('mDreamingLockscreen=(\w+)', result).group(1)
+        return is_locked == 'true'
+    except RuntimeError as e:
+        log_error(e)
+        return False
+
+def unlock_device_screen():
+    KEYCODE_MENU = 82   # https://developer.android.com/reference/android/view/KeyEvent#KEYCODE_MENU
+    adb_exec(f'shell input keyevent {KEYCODE_MENU}')  # Press MENU key to wake up device
+    adb_exec(f'shell input keyevent {KEYCODE_MENU}')  # Press MENU key to focus menu
+
+    if is_device_screen_locked():
+        adb_exec('shell input touchscreen swipe 50 1500 50 0')  # Swipe screen to unlock
 
 @adb_cmd()
 def start_app_activity(app_activity, extras):
