@@ -4,6 +4,12 @@ import vk.config as config
 import vk.utils as utils
 
 
+_API_DUMP_LAYER_NAME = 'VK_LAYER_LUNARG_api_dump'
+_API_DUMP_LAYER_FILE_NAME = 'libVkLayer_api_dump.so'
+_SCREENSHOT_LAYER_NAME = 'VK_LAYER_LUNARG_screenshot'
+_SCREENSHOT_LAYER_FILE_NAME = 'libVkLayer_screenshot.so'
+
+
 class DumpSession:
 
     def __init__(self, app_name, layer_name):
@@ -30,6 +36,7 @@ class DumpSession:
             else:
                 utils.set_gpu_debug_layers(self.old_app_layers + [self.layer_name])
 
+            utils.unlock_device_screen()
             utils.stop_app(self.app_name)
             utils.start_app(self.app_name)
 
@@ -77,23 +84,19 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
     $ vk dump-api --app com.foo.bar --range 5-8
 
     \f
-    https://vulkan.lunarg.com/doc/view/1.3.216.0/mac/api_dump_layer.html
+    https://vulkan.lunarg.com/doc/sdk/latest/windows/api_dump_layer.html
     """
-
-    layer_filename = 'libVkLayer_api_dump.so'
-    output_dst_folder = '/sdcard/Android'
 
     if app_name:
         app_name = config.get_valid_app_name(app_name)
-        output_dst_folder = f'/data/data/{app_name}'
         if not filename:
             filename = app_name
-        if not utils.check_layer_in_app_folder(app_name, layer_filename):
-            utils.log_error(f"Can not find '{layer_filename}' installed for {app_name}.\n"
+        if not utils.check_layer_in_app_folder(app_name, _API_DUMP_LAYER_FILE_NAME):
+            utils.log_error(f"Can not find '{_API_DUMP_LAYER_FILE_NAME}' installed for {app_name}.\n"
                             "Please install the layer for the app first.")
             return
-    elif not utils.check_layer_in_global_folder(layer_filename):
-        utils.log_error(f"Can not find {layer_filename} installed globally.\n"
+    elif not utils.check_layer_in_global_folder(_API_DUMP_LAYER_FILE_NAME):
+        utils.log_error(f"Can not find {_API_DUMP_LAYER_FILE_NAME} installed globally.\n"
                         "Please install the layer first (require ROOT access).")
         return
 
@@ -101,20 +104,25 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
         filename = 'vk_apidump'
 
     time_str = utils.get_time_str()
-    ext = 'log' if format == 'text' else format
+    ext = 'txt' if format == 'text' else format
     filepath = f"{filename}_{time_str}.api.{ext}"
+    output_dst_folder = f'/sdcard/Android/vkcli'
     output_path_on_device = f'{output_dst_folder}/{filepath}'
 
     try:
+        utils.create_folder_if_not_exists(output_dst_folder)
+
         # Configure API dump options
-        utils.adb_setprop('debug.apidump_log_filename', output_path_on_device)
-        utils.adb_setprop('debug.apidump_output_format', format)
-        utils.adb_setprop('debug.apidump_output_range', range)
-        utils.adb_setprop('debug.apidump_detailed', True)
-        utils.adb_setprop('debug.apidump_timestamp', show_timestamp)
+        # Following properties are verified with libVkLayer_api_dump.so built from
+        # https://github.com/LunarG/VulkanTools/commit/9bd6f95db3076517205b01300c8d37043c5b2dd3
+        utils.adb_setprop('debug.vulkan.api_dump.log_filename', output_path_on_device)
+        utils.adb_setprop('debug.vulkan.api_dump.output_format', format)
+        utils.adb_setprop('debug.vulkan.api_dump.output_range', range)
+        utils.adb_setprop('debug.vulkan.api_dump.detailed', True)
+        utils.adb_setprop('debug.vulkan.api_dump.timestamp', show_timestamp)
 
         ret = None
-        with DumpSession(app_name, 'VK_LAYER_LUNARG_api_dump'):
+        with DumpSession(app_name, _API_DUMP_LAYER_NAME):
             click.echo(f"Start dumping API (range={range}) to {output_path_on_device}")
             ret = utils.acquire_valid_input('Want to Stop or Stop-and-Pull (s/sp)? ', ('s', 'sp'))
 
@@ -164,18 +172,16 @@ def dump_img(app_name, range, filename, local_dst_folder):
     $ vk dump-img --app ? --range 10-5-3
 
     \f
-    https://vulkan.lunarg.com/doc/view/1.3.204.1/linux/screenshot_layer.html
+    https://vulkan.lunarg.com/doc/sdk/latest/windows/screenshot_layer.html
     """
-
-    layer_filename = 'libVkLayer_screenshot.so'
 
     if app_name:
         app_name = config.get_valid_app_name(app_name)
         if not filename:
             filename = app_name
 
-        if not utils.check_layer_in_app_folder(app_name, layer_filename):
-            utils.log_error(f"Can not find {layer_filename} installed for {app_name}.\n"
+        if not utils.check_layer_in_app_folder(app_name, _SCREENSHOT_LAYER_FILE_NAME):
+            utils.log_error(f"Can not find {_SCREENSHOT_LAYER_FILE_NAME} installed for {app_name}.\n"
                             "Please install the layer for the app first.")
             return
 
@@ -186,8 +192,8 @@ def dump_img(app_name, range, filename, local_dst_folder):
         except RuntimeError:
             utils.log_error(f'Failed to grant read/write permission for external storage from {app_name}.')
             return
-    elif not utils.check_layer_in_global_folder(layer_filename):
-        utils.log_error(f"Can not find {layer_filename} installed globally.\n"
+    elif not utils.check_layer_in_global_folder(_SCREENSHOT_LAYER_FILE_NAME):
+        utils.log_error(f"Can not find {_SCREENSHOT_LAYER_FILE_NAME} installed globally.\n"
                         "Please install the layer first (require ROOT access).")
         return
 
@@ -203,7 +209,7 @@ def dump_img(app_name, range, filename, local_dst_folder):
         utils.create_folder_if_not_exists(output_folder_on_device)
 
         ret = None
-        with DumpSession(app_name, 'VK_LAYER_LUNARG_screenshot'):
+        with DumpSession(app_name, _SCREENSHOT_LAYER_NAME):
             click.echo(f"Start dumping screenshots (range [start-count-step]={range}) to {output_folder_on_device}")
             ret = utils.acquire_valid_input('Want to Stop or Stop-and-Pull (s/sp)? ', ('s', 'sp'))
 
