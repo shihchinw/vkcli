@@ -21,6 +21,7 @@ Commands:
   query     Query device info related to apps, traces, layers, etc.
   record    Record API trace of APP_NAME.
   replay    Replay TRACE_NAME on device.
+  validate  Validate application with validation layers.
 ```
 
 To query detailed description of each command (i.e. install, layer, etc.), please append `--help` option:

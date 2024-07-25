@@ -3,6 +3,7 @@
 * [Python 3.x](https://www.python.org/downloads/)
 * [GFXReconstruct](https://github.com/LunarG/gfxreconstruct/releases) for `record`, `replay`
 * [LunarG/VulkanTools](https://github.com/LunarG/VulkanTools): VK_LAYER_LUNARG_api_dump, VK_LAYER_LUNARG_screenshot for `dump-api`, `dump-img`
+* [Vulkan-ValidationLayers](https://github.com/KhronosGroup/Vulkan-ValidationLayers): VK_LAYER_KHRONOS_validation for `validate`
 
 # Installation
 
@@ -274,6 +275,21 @@ Copying /sdcard/Android/vkcli/screenshot_0611_082749 to ./output
 
 $ ls ./output/screenshot_0611_082749
 10.ppm  13.ppm
+```
+
+# Validate APP
+
+[VK_LAYER_KHRONOS_validation](https://vulkan.lunarg.com/doc/view/latest/windows/khronos_validation_layer.html) is a great tool to check incorrect API usage, synchronization hazards, and find out common misuse of API which might hurt performance. However, it's tedious and error-prone to configure layer options on Android. With `validate`, we could easily apply following validations:
+* Regular validation
+* Synchronization validation
+* Arm best-practices validation
+
+```
+$ vk validate --app com.foo.bar  # Launch com.foo.bar and then execute regular validation.
+
+$ vk validate --app com.foo.bar --check-sync # Launch com.foo.bar and apply synchronization validation.
+
+$ vk validate --app com.foo.bar --check-bp # Launch app and apply Arm best-practices validation.
 ```
 
 ## Troubleshooting: Layer Not Found
