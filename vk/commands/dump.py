@@ -187,19 +187,11 @@ def dump_img(app_name, range, filename, local_dst_folder):
             filename = app_name
 
         if not utils.check_layer_in_app_folder(app_name, _SCREENSHOT_LAYER_FILE_NAME):
-            utils.log_error(f"Can not find {_SCREENSHOT_LAYER_FILE_NAME} installed for {app_name}.\n"
+            utils.log_error(f"Can not find '{_SCREENSHOT_LAYER_FILE_NAME}' installed for {app_name}.\n"
                             "Please install the layer for the app first.")
             return
-
-        try:
-            # Grant read/write permission for external storage.
-            utils.adb_exec(f'shell pm grant {app_name} android.permission.READ_EXTERNAL_STORAGE')
-            utils.adb_exec(f'shell pm grant {app_name} android.permission.WRITE_EXTERNAL_STORAGE')
-        except RuntimeError:
-            utils.log_error(f'Failed to grant read/write permission for external storage from {app_name}.')
-            return
     elif not utils.check_layer_in_global_folder(_SCREENSHOT_LAYER_FILE_NAME):
-        utils.log_error(f"Can not find {_SCREENSHOT_LAYER_FILE_NAME} installed globally.\n"
+        utils.log_error(f"Can not find '{_SCREENSHOT_LAYER_FILE_NAME}' installed globally.\n"
                         "Please install the layer first (require ROOT access).")
         return
 
@@ -207,7 +199,7 @@ def dump_img(app_name, range, filename, local_dst_folder):
         filename = 'screenshot'
 
     time_str = utils.get_time_str()
-    output_folder_on_device = f'/sdcard/Android/vkcli/{filename}_{time_str}.imgs'
+    output_folder_on_device = f'/sdcard/Android/data/{app_name}/files/{time_str}.imgs'
 
     try:
         utils.adb_setprop('debug.vulkan.screenshot.dir', output_folder_on_device)
@@ -216,21 +208,20 @@ def dump_img(app_name, range, filename, local_dst_folder):
 
         ret = None
         with DumpSession(app_name, _SCREENSHOT_LAYER_NAME):
-            click.echo(f"Start dumping screenshots (range [start-count-step]={range}) to {output_folder_on_device}")
+            click.echo(f'Start dumping screenshots (range [start-count-step]={range}) to {output_folder_on_device}')
             ret = utils.acquire_valid_input('Want to Stop or Stop-and-Pull (s/sp)? ', ('s', 'sp'))
 
         if ret == 'sp':
-            if not os.path.exists(local_dst_folder):
-                os.makedirs(local_dst_folder)
+            local_dst_path = os.path.normpath(os.path.join(local_dst_folder, f'{filename}_{time_str}.imgs'))
 
-            click.echo(f'Copying {output_folder_on_device} to {local_dst_folder}')
-            utils.adb_pull(output_folder_on_device, local_dst_folder)
+            if not os.path.exists(local_dst_path):
+                os.makedirs(local_dst_path)
 
-        utils.delete_dir(output_folder_on_device)
-        click.echo(f"{output_folder_on_device} has been deleted on device.")
+            click.echo(f'Copying screenshots to {local_dst_path}')
+            utils.adb_pull(output_folder_on_device, local_dst_path)
     except KeyboardInterrupt:
         click.echo('Screenshot dump is canceled.')
-        utils.delete_dir(output_folder_on_device)
-        click.echo(f"{output_folder_on_device} has been deleted.")
     finally:
+        utils.delete_dir(output_folder_on_device)
+        click.echo(f'{output_folder_on_device} has been deleted on device.')
         utils.adb_setprop('debug.vulkan.screenshot', '""')
