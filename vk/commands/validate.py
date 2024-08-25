@@ -29,7 +29,6 @@ class ValidationSession:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        print('Exit')
         utils.set_debug_vulkan_layers(self.old_global_layers)
         utils.enable_gpu_debug_layers(self.old_enable_app_layers)
         utils.set_gpu_debug_app(self.old_app_name)
@@ -99,13 +98,13 @@ def validate(app_name, check_sync, check_bp, not_check_core, prompt):
     $ vk validate --app com.foo.bar -p
 
     \f
-    https://vulkan.lunarg.com/doc/view/1.3.283.0/windows/khronos_validation_layer.html
+    https://vulkan.lunarg.com/doc/view/latest/windows/khronos_validation_layer.html
     """
 
     app_name = config.get_valid_app_name(app_name)
 
     if not utils.check_layer_in_app_folder(app_name, _VALIDATION_LAYER_FILE_NAME):
-            utils.log_error(f"Can not find {_VALIDATION_LAYER_FILE_NAME} installed for {app_name}.\n"
+            utils.log_error(f"Can not find '{_VALIDATION_LAYER_FILE_NAME}' installed for {app_name}.\n"
                             "Please install the layer for the app first.")
             return
 
