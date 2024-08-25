@@ -96,7 +96,7 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
                             "Please install the layer for the app first.")
             return
     elif not utils.check_layer_in_global_folder(_API_DUMP_LAYER_FILE_NAME):
-        utils.log_error(f"Can not find {_API_DUMP_LAYER_FILE_NAME} installed globally.\n"
+        utils.log_error(f"Can not find '{_API_DUMP_LAYER_FILE_NAME}' installed globally.\n"
                         "Please install the layer first (require ROOT access).")
         return
 
@@ -105,9 +105,14 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
 
     time_str = utils.get_time_str()
     ext = 'txt' if format == 'text' else format
-    filepath = f"{filename}_{time_str}.api.{ext}"
-    output_dst_folder = f'/sdcard/Android/vkcli'
-    output_path_on_device = f'{output_dst_folder}/{filepath}'
+
+    # Android system property should keep less than 92 bytes, thus we use short tmp_filename to avoid the constraint.
+    tmp_filename = f'{time_str}.api.{ext}'
+
+    # Output destination folder should be set to app-wise folder to avoid permission issue after Android 11.
+    # Ref: https://github.com/KhronosGroup/Vulkan-Samples/issues/646
+    output_dst_folder = f'/sdcard/Android/data/{app_name}/files'
+    output_path_on_device = f'{output_dst_folder}/{tmp_filename}'
 
     try:
         utils.create_folder_if_not_exists(output_dst_folder)
@@ -123,22 +128,23 @@ def dump_api(app_name, range, show_timestamp, format, filename, local_dst_folder
 
         ret = None
         with DumpSession(app_name, _API_DUMP_LAYER_NAME):
-            click.echo(f"Start dumping API (range={range}) to {output_path_on_device}")
+            click.echo(f'Start dumping API (range={range}) to {output_path_on_device}')
             ret = utils.acquire_valid_input('Want to Stop or Stop-and-Pull (s/sp)? ', ('s', 'sp'))
 
         if ret == 'sp':
             if not os.path.exists(local_dst_folder):
                 os.makedirs(local_dst_folder)
 
-            click.echo(f'Copying {output_path_on_device} to {local_dst_folder}')
-            utils.adb_pull(output_path_on_device, local_dst_folder)
+            local_dst_filepath = os.path.normpath(os.path.join(local_dst_folder, f'{filename}_{time_str}.api.{ext}'))
+            click.echo(f'Copying api dump file to {local_dst_filepath}')
+            utils.adb_pull(output_path_on_device, local_dst_filepath)
 
-        utils.adb_exec(f"shell rm {output_path_on_device}")
-        click.echo(f"{output_path_on_device} has been deleted on device.")
+        utils.adb_exec(f'shell rm {output_path_on_device}')
+        click.echo(f'{output_path_on_device} has been deleted on device.')
     except KeyboardInterrupt:
         click.echo('API dump is canceled.')
-        utils.adb_exec(f"shell rm {output_path_on_device}")
-        click.echo(f"{output_path_on_device} has been deleted.")
+        utils.adb_exec(f'shell rm {output_path_on_device}')
+        click.echo(f'{output_path_on_device} has been deleted.')
 
 
 @click.command()
