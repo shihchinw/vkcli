@@ -16,6 +16,8 @@ import vk.utils as utils
               help='Screenshot scale.')
 @click.option('-sspf', '--screenshot-prefix', type=str, default='screenshot',
               help='Prefix to screenshot file names.')
+@click.option('-ssf', '--screenshot-format', type=click.Choice(['bmp', 'png'], case_sensitive=False),
+              default='png', help='Image file format of screenshots.')
 @click.option('-sfa', '--skip-failed-allocations', is_flag=True,
               help='Skip failed allocations during capture.')
 @click.option('-opc', '--omit-pipeline-cache', is_flag=True,
@@ -33,7 +35,7 @@ import vk.utils as utils
 @click.option('--pull', 'pull_folder', type=click.Path(), metavar='<local_folder>',
               help='Pull output files from device to <local_folder>.')
 def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot_scale, screenshot_prefix,
-        skip_failed_allocations, omit_pipeline_cache, remove_unsupported, measure_frame_range,
+        screenshot_format, skip_failed_allocations, omit_pipeline_cache, remove_unsupported, measure_frame_range,
         quit_after_measurement_range, flush_measurement_range, flush_inside_measurement_range, pull_folder):
     """Replay TRACE_NAME on device.
 
@@ -118,7 +120,7 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         args.append(f'--screenshot-dir {device_screenshot_folder}')
         args.append(f'--screenshot-prefix {screenshot_prefix}')
         args.append(f'--screenshot-scale {screenshot_scale}')
-        args.append(f'--screenshot-format png')
+        args.append(f'--screenshot-format {screenshot_format}')
 
     if skip_failed_allocations:
         args.append('--sfa')
