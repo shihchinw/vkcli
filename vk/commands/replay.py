@@ -11,7 +11,7 @@ import vk.utils as utils
 @click.option('-si', '--surface-index', default=-1, metavar='N',
               help='Restrict rendering to Nth surface object.')
 @click.option('-ss', '--screenshots', 'screenshots_range', type=str, metavar='<range>',
-              help='Dump screenshots for the specified frames <range>. Ex. 1,5-10.')
+              help='Dump screenshots for the specified frames <range>. Ex. 1,5-10 or "all" for all frames.')
 @click.option('-sss', '--screenshot-scale', type=float, default=1.0, metavar='',
               help='Screenshot scale.')
 @click.option('-sspf', '--screenshot-prefix', type=str, default='screenshot',
@@ -64,6 +64,10 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
     \b
     >> Example 5: Replay trace and measure FPS between 5-10th frames.
     $ vk replay com.foo.bar-test.gfxr -mfr 5-50
+
+    \b
+    >> Example 6: Replay trace and dump thumbnails of all screenshots to local folder.
+    $ vk replay com.foo.bar-test.gfxr -ss all -sss 0.1
     """
 
     # Grant MANAGE_EXTERNAL_STORAGE permission for replay apk.
@@ -106,7 +110,11 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
     if screenshots_range:
         device_screenshot_folder = settings.get_temp_snap_folder_on_device()
         utils.create_folder_if_not_exists(device_screenshot_folder)
-        args.append(f'--screenshots {screenshots_range}')
+
+        if screenshots_range == 'all':
+            args.append('--screenshot-all')
+        else:
+            args.append(f'--screenshots {screenshots_range}')
         args.append(f'--screenshot-dir {device_screenshot_folder}')
         args.append(f'--screenshot-prefix {screenshot_prefix}')
         args.append(f'--screenshot-scale {screenshot_scale}')
