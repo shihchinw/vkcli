@@ -137,6 +137,8 @@ def replay(trace_name, pause_frame, surface_index, screenshots_range, screenshot
         click.echo(result)
         return
 
+    utils.wait_until_app_launch(replayer_name)
+
     if screenshots_range or measure_frame_range:
         utils.wait_until_app_exit(replayer_name)
 
