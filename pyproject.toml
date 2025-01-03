@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vkcli"
+version = "0.2.5"
+authors = [
+  { name="Shih-Chin Weng", email="shihchin.weng@gmail.com" },
+]
+description = "Command line tool for Vulkan configuration on Android"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "Click",
+]
+
+[project.scripts]
+vk = "vk.cli:main"
+
+[tool.setuptools]
+py-modules = ["vk"]
+
+[tool.setuptools.packages.find]
+include = ["vk", "vk.*"]

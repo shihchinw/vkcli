@@ -84,7 +84,7 @@ $ pytest
 vkcli is distributed as a wheel by executing build.bat or:
 
 ```
-$ python setup.py bdist_wheel
+$ python -m build
 ```
 
 Then you will see `vkcli-x.x.x-py3-none-any.whl` in **dist** folder.
